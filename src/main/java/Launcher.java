@@ -7,25 +7,45 @@ public class Launcher {
 
         try {
 
+            if (args.length != 1) {
+                System.out.println("Demos:");
+                System.out.println("\tstocks");
+                System.out.println("\tsensors");
+                System.out.println("\n");
+                System.out.println("Enter the type of demo:");
+                System.out.println("\t java -jar cepdemos.jar [name of demo]");
+
+            } else {
+
+
+                switch (args[0].toLowerCase()) {
+                    case "stocks":
+                        System.out.println("Stocks Demo:");
+                        stocksDemo();
+                        break;
+                    case "sensors":
+                        System.out.println("Sensors Demo:");
+                        sensorsDemo();
+                        break;
+                    default:
+                        System.out.println("no demo selected");
+
+                }
+
+            }
+
+            } catch(Exception ex){
+                ex.printStackTrace();
+            }
+    }
+
+    public static void stocksDemo() {
+
+        try {
 
             CEPEngine cepEngine = new CEPEngine();
 
 
-            /*
-            String inputStreamName = "UserStream";
-            String inputStreamAttributesString = "source string, urn string, metric string, ts long, value double";
-
-            String outputStreamName = "BarStream";
-            String outputStreamAttributesString = "source string, avgValue double";
-
-            String queryString = " " +
-                    "from UserStream#window.timeBatch(5 sec) " +
-                    "select source, avg(value) as avgValue " +
-                    "  group by source " +
-                    "insert into BarStream; ";
-
-            */
-            /*
             String inputStreamName = "StockStream";
             String inputStreamAttributesString = "source string, value double";
 
@@ -35,8 +55,29 @@ public class Launcher {
             String queryString = " " +
                     "from StockStream[value > 100]" +
                     "insert into AlertStream; ";
-            */
 
+            cepEngine.createCEP(inputStreamName, outputStreamName, inputStreamAttributesString, outputStreamAttributesString, queryString);
+
+            while (true) {
+                String inputEvent = cepEngine.getStringPayloadStock("MYCO");
+                String inputEvent2 = cepEngine.getStringPayloadStock("YOURCO");
+                System.out.println("INPUT EVENT: " + inputEvent);
+                cepEngine.input(inputStreamName, inputEvent);
+                cepEngine.input(inputStreamName, inputEvent2);
+                Thread.sleep(1000);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
+    public static void sensorsDemo() {
+
+        try {
+
+            CEPEngine cepEngine = new CEPEngine();
 
             String inputStreamName = "SensorStream";
             String inputStreamAttributesString = "sensor_type string, sensor_id string, timestamp long, value double, metric string";
@@ -50,10 +91,7 @@ public class Launcher {
                     "  group by sensor_id " +
                     "insert into AVGStream; ";
 
-            cepEngine.createCEP(inputStreamName, outputStreamName, inputStreamAttributesString , outputStreamAttributesString, queryString);
-
-            //String inputEvent = cepEngine.getStringPayload();
-            //cepEngine.input(inputStreamName, inputEvent);
+            cepEngine.createCEP(inputStreamName, outputStreamName, inputStreamAttributesString, outputStreamAttributesString, queryString);
 
             while (true) {
                 String inputEvent = cepEngine.getStringPayloadSensor();
@@ -62,12 +100,11 @@ public class Launcher {
                 Thread.sleep(1000);
             }
 
-            //cepEngine.shutdown();
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
     }
+
 
 }

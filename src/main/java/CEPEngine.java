@@ -1,6 +1,7 @@
 import com.google.gson.Gson;
 import io.siddhi.core.SiddhiAppRuntime;
 import io.siddhi.core.SiddhiManager;
+import io.siddhi.core.stream.output.sink.InMemorySink;
 import io.siddhi.core.util.transport.InMemoryBroker;
 
 import java.util.Map;
@@ -19,10 +20,30 @@ public class CEPEngine {
 
     public CEPEngine() {
 
+        Class JsonClassSource = null;
+        Class JsonClassSink = null;
+
+        try {
+            JsonClassSource = Class.forName("io.siddhi.extension.map.json.sourcemapper.JsonSourceMapper");
+            JsonClassSink = Class.forName("io.siddhi.extension.map.json.sinkmapper.JsonSinkMapper");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        try {
+            InMemorySink sink = new InMemorySink();
+            sink.connect();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+
         topicMap = new ConcurrentHashMap<>();
 
         // Creating Siddhi Manager
         siddhiManager = new SiddhiManager();
+        siddhiManager.setExtension("sourceMapper:json",JsonClassSource);
+        siddhiManager.setExtension("sinkMapper:json",JsonClassSink);
         gson = new Gson();
     }
 
@@ -56,6 +77,7 @@ public class CEPEngine {
             String sinkString = getSinkString(outputTopic,outputStreamName,outputStreamAttributesString);
 
             //Generating runtime
+
             siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(sourceString + " " + sinkString + " " + queryString);
 
             InMemoryBroker.Subscriber subscriberTest = new OutputSubscriber(outputTopic,outputStreamName);
